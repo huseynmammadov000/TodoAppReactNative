@@ -10,6 +10,7 @@ import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useNavigation} from '@react-navigation/native';
 import PasswordInput from '../components/PasswordInput';
 import Input from '../components/Input';
+import { storage } from '../../../utils/MMKVStorage';
 
 const Login = () => {
   const [formData, setFormData] = useState({email: '', password: ''});
@@ -20,13 +21,40 @@ const Login = () => {
   const handleInputChange = (inputName, inputValue) => {
     setFormData(prevState => ({...prevState, [inputName]: inputValue}));
   };
+
+  const submitData = async () => {
+    try {
+      const response = await fetch('http://192.168.199.1:5000/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        storage.set('token', data.token);
+
+        console.log('Token:', data.token);
+        
+       navigation.navigate('Homepage')
+      } else {
+        setErrors({ general: data.message });
+        console.log('Login failed:', data.message);
+      }
+    } catch (error) {
+      console.log('Something went wrong', error);
+    }
+  };
+
   useEffect(() => {
     console.log(formData);
   }, [formData]);
-
-  const submitData = () => {
-    console.log(formData);
-  };
 
   return (
     <KeyboardAwareScrollView
@@ -51,40 +79,12 @@ const Login = () => {
           error={errors?.password}
         />
 
-        {/* <StyledTextInput
-          value={formData.email}
-          onChangeText={value =>
-            setFormData(prevState => ({...prevState, email: value}))
-          }
-          placeholder="Enter your email"
-          className="w-full border border-zinc-300 p-3 rounded-lg bg-white shador shadow-zinc-200 mb-3"></StyledTextInput>
-        <StyledView className="w-full border border-zinc-300  rounded-lg bg-white shador shadow-zinc-200">
-          <StyledTextInput
-            secureTextEntry={!passwordVisible}
-            value={formData.password}
-            onChangeText={value =>
-              setFormData(prevState => ({...prevState, password: value}))
-            }
-            placeholder="Enter your password"
-            className="w-full p-3"></StyledTextInput>
-          <StyledTouchableOpacity
-            onPress={() => {
-              setPasswordVisible(prevState => !prevState);
-            }}
-            className="absolute right-3 top-3">
-            <StyledText>X</StyledText>
-          </StyledTouchableOpacity>
-      <StyledTouchableOpacity
-        onPress={submitData}
-        className="w-full py-5 bg-blue-700 mt-3 rounded-lg">
-        <StyledText className="text-center text-white">Submit</StyledText>
-      </StyledTouchableOpacity> */}
-
         <StyledTouchableOpacity
           onPress={submitData}
           className="w-full py-5 bg-blue-700 mt-3 rounded-lg">
           <StyledText className="text-center text-white">Submit</StyledText>
         </StyledTouchableOpacity>
+
         <StyledTouchableOpacity
           onPress={() => {
             navigation.navigate('Register');

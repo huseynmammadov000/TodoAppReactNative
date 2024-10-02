@@ -3,9 +3,11 @@ import TabStack from './TabStack';
 import AuthStack from './AuthStack';
 import Homepage from '../screens/homepage/Homepage';
 import Profile from '../screens/profile/Profile';
+import { useMMKVString } from 'react-native-mmkv';
 
 const Navigation = () => {
   const isAuthenticated = false;
+  const [accessToken,setAccessToken] = useMMKVString('token');
 
   const linking = {
     prefixes: ['myrn11project://'],
@@ -36,7 +38,7 @@ const Navigation = () => {
 
   return (
     <NavigationContainer linking={linking}>
-      {isAuthenticated ? <TabStack /> : <AuthStack />}
+      {accessToken ? <TabStack /> : <AuthStack />}
     </NavigationContainer>
   );
 };
